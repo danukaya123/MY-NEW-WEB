@@ -908,5 +908,11 @@
     background: var(--bs-dark);
 }
 /*** copyright end ***/
+.rounded-bottom {
+    border-bottom-right-radius: 10px !important;
+    border-bottom-left-radius: 10px !important;
+    padding-top: 5px;
+    padding-bottom: 10px;
+}
 
 
