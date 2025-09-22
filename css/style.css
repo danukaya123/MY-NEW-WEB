@@ -919,4 +919,8 @@
     padding-bottom: 40px;
 }
 
+img, svg {
+    vertical-align: middle;
+    width: 200px;
+}
 
