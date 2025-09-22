@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quizontal - Login & Signup</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         :root {
             --bs-blue: #0d6efd;
@@ -370,20 +373,6 @@
             color: var(--bs-light);
         }
 
-        @media (max-width: 768px) {
-            .auth-container {
-                flex-direction: column;
-            }
-            
-            .welcome-section {
-                padding: 30px 20px;
-            }
-            
-            .form-section {
-                padding: 30px 20px;
-            }
-        }
-
         /* Spinner for loading state */
         .spinner {
             display: none;
@@ -400,10 +389,146 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Dashboard Styles */
+        .dashboard-container {
+            width: 100%;
+            max-width: 1000px;
+            background: rgba(23, 48, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 208, 132, 0.2);
+            padding: 30px;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid var(--bs-primary);
+        }
+
+        .user-details h2 {
+            color: var(--bs-primary);
+            margin-bottom: 5px;
+        }
+
+        .user-details p {
+            color: var(--bs-light);
+            opacity: 0.8;
+        }
+
+        .logout-btn {
+            background: var(--bs-danger);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(0, 208, 132, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(0, 208, 132, 0.2);
+        }
+
+        .stat-card h3 {
+            color: var(--bs-primary);
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--bs-light);
+        }
+
+        .recent-activity {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .recent-activity h3 {
+            color: var(--bs-primary);
+            margin-bottom: 15px;
+        }
+
+        .activity-list {
+            list-style: none;
+        }
+
+        .activity-item {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+            }
+            
+            .welcome-section {
+                padding: 30px 20px;
+            }
+            
+            .form-section {
+                padding: 30px 20px;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .user-info {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Login/Signup Page -->
+    <div class="container" id="authContainer">
         <div class="header">
             <div class="logo">QUIZONTAL</div>
             <p class="tagline">Test your knowledge, challenge your friends, and climb the leaderboards!</p>
@@ -518,17 +643,78 @@
                 </form>
                 
                 <div class="success-message" id="successMessage">
-                    Account created successfully! Redirecting to services...
+                    Account created successfully! Redirecting to dashboard...
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Dashboard Page (Hidden by default) -->
+    <div class="container" id="dashboardContainer" style="display: none;">
+        <div class="dashboard-container">
+            <div class="dashboard-header">
+                <div class="user-info">
+                    <img id="userAvatar" src="" alt="User Avatar" class="user-avatar">
+                    <div class="user-details">
+                        <h2 id="userName">User Name</h2>
+                        <p id="userEmail">user@example.com</p>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutBtn">Logout</button>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h3>Quizzes Completed</h3>
+                    <div class="stat-value" id="quizzesCompleted">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Score</h3>
+                    <div class="stat-value" id="totalScore">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Current Rank</h3>
+                    <div class="stat-value" id="currentRank"># -</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Member Since</h3>
+                    <div class="stat-value" id="memberSince">-</div>
+                </div>
+            </div>
+            
+            <div class="recent-activity">
+                <h3>Recent Activity</h3>
+                <ul class="activity-list" id="activityList">
+                    <li class="activity-item">
+                        <span>Welcome to Quizontal!</span>
+                        <span>Just now</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Your Google OAuth Client ID - REPLACE THIS WITH YOUR ACTUAL CLIENT ID
+        // Firebase Configuration - REPLACE WITH YOUR ACTUAL CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyD2vYzivm2Gbgl_ee0t81d6r5GPHeI4Gqs",
+            authDomain: "quizontal-de977.firebaseapp.com",
+            projectId: "quizontal-de977",
+            storageBucket: "quizontal-de977.firebasestorage.app",
+            messagingSenderId: "448533191404",
+            appId: "1:448533191404:web:f13787dc074def891fe3c9"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Your Google OAuth Client ID - REPLACE WITH YOUR ACTUAL CLIENT ID
         const GOOGLE_CLIENT_ID = '1053520824725-at3vm404ps6i8v3ur946lh9ghuaiards.apps.googleusercontent.com';
         
         // DOM Elements
+        const authContainer = document.getElementById('authContainer');
+        const dashboardContainer = document.getElementById('dashboardContainer');
         const loginToggle = document.getElementById('loginToggle');
         const signupToggle = document.getElementById('signupToggle');
         const loginForm = document.getElementById('loginForm');
@@ -540,7 +726,76 @@
         const successMessage = document.getElementById('successMessage');
         const loginSpinner = document.getElementById('loginSpinner');
         const signupSpinner = document.getElementById('signupSpinner');
+        const logoutBtn = document.getElementById('logoutBtn');
         
+        // Dashboard elements
+        const userName = document.getElementById('userName');
+        const userEmail = document.getElementById('userEmail');
+        const userAvatar = document.getElementById('userAvatar');
+        const quizzesCompleted = document.getElementById('quizzesCompleted');
+        const totalScore = document.getElementById('totalScore');
+        const currentRank = document.getElementById('currentRank');
+        const memberSince = document.getElementById('memberSince');
+        const activityList = document.getElementById('activityList');
+
+        // Store user data in Firebase
+        async function storeUserInFirebase(userData, isNewUser = false) {
+            try {
+                const userRef = db.collection('users').doc(userData.uid);
+                
+                if (isNewUser) {
+                    // Create new user document
+                    await userRef.set({
+                        name: userData.name,
+                        email: userData.email,
+                        picture: userData.picture,
+                        joined: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+                        quizzesCompleted: 0,
+                        totalScore: 0,
+                        currentRank: 'Newbie',
+                        activity: [{
+                            action: 'Account created',
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        }]
+                    });
+                    console.log('New user stored in Firebase');
+                } else {
+                    // Update existing user document
+                    await userRef.update({
+                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    // Add login activity
+                    await userRef.collection('activity').add({
+                        action: 'User logged in',
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    console.log('User data updated in Firebase');
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Error storing user data in Firebase:', error);
+                return false;
+            }
+        }
+
+        // Get user data from Firebase
+        async function getUserFromFirebase(uid) {
+            try {
+                const userDoc = await db.collection('users').doc(uid).get();
+                if (userDoc.exists) {
+                    return userDoc.data();
+                }
+                return null;
+            } catch (error) {
+                console.error('Error getting user data from Firebase:', error);
+                return null;
+            }
+        }
+
         // Initialize Google Sign In
         function initializeGoogleSignIn() {
             if (typeof google === 'undefined') {
@@ -595,7 +850,7 @@
         }
         
         // Handle Google Sign In response
-        function handleGoogleSignIn(response) {
+        async function handleGoogleSignIn(response) {
             console.log('Google Sign In response:', response);
             
             // Show loading spinner
@@ -604,32 +859,112 @@
             // The response.credential is a JWT token
             const credential = response.credential;
             
-            // Decode the JWT token to get user info (frontend only)
+            // Decode the JWT token to get user info
             const payload = JSON.parse(atob(credential.split('.')[1]));
             console.log('User info:', payload);
             
             // Extract user information
             const user = {
+                uid: payload.sub, // Google's unique user ID
                 name: payload.name,
                 email: payload.email,
                 picture: payload.picture,
                 email_verified: payload.email_verified
             };
             
-            // Store user data in localStorage
-            localStorage.setItem('quizontalUser', JSON.stringify(user));
-            localStorage.setItem('quizontalToken', credential);
-            localStorage.setItem('isLoggedIn', 'true');
+            // Check if this is a new user (by checking localStorage first)
+            const existingUser = localStorage.getItem('quizontalUser');
+            const isNewUser = !existingUser;
             
-            // Hide spinner
-            document.querySelector('.spinner').style.display = 'none';
+            // Store user data in Firebase
+            const storeSuccess = await storeUserInFirebase(user, isNewUser);
             
-            // Redirect to service.html after successful authentication
-            setTimeout(() => {
-                window.location.href = 'service.html';
-            }, 1000);
+            if (storeSuccess) {
+                // Store user data in localStorage
+                localStorage.setItem('quizontalUser', JSON.stringify(user));
+                localStorage.setItem('quizontalToken', credential);
+                localStorage.setItem('isLoggedIn', 'true');
+                
+                // Hide spinner
+                document.querySelector('.spinner').style.display = 'none';
+                
+                // Show dashboard
+                showDashboard(user);
+            } else {
+                // Hide spinner and show error
+                document.querySelector('.spinner').style.display = 'none';
+                alert('Error storing user data. Please try again.');
+            }
         }
         
+        // Show dashboard with user data
+        async function showDashboard(user) {
+            // Hide auth container, show dashboard
+            authContainer.style.display = 'none';
+            dashboardContainer.style.display = 'flex';
+            
+            // Set basic user info
+            userName.textContent = user.name;
+            userEmail.textContent = user.email;
+            userAvatar.src = user.picture || 'https://via.placeholder.com/60';
+            
+            // Get additional user data from Firebase
+            const userData = await getUserFromFirebase(user.uid);
+            
+            if (userData) {
+                // Update dashboard with user data
+                quizzesCompleted.textContent = userData.quizzesCompleted || 0;
+                totalScore.textContent = userData.totalScore || 0;
+                currentRank.textContent = userData.currentRank || 'Newbie';
+                
+                // Format member since date
+                if (userData.joined) {
+                    const joinedDate = userData.joined.toDate();
+                    memberSince.textContent = joinedDate.toLocaleDateString();
+                }
+                
+                // Add activity items
+                if (userData.activity && userData.activity.length > 0) {
+                    activityList.innerHTML = '';
+                    userData.activity.forEach(activity => {
+                        const li = document.createElement('li');
+                        li.className = 'activity-item';
+                        
+                        const actionSpan = document.createElement('span');
+                        actionSpan.textContent = activity.action;
+                        
+                        const timeSpan = document.createElement('span');
+                        if (activity.timestamp) {
+                            const activityDate = activity.timestamp.toDate();
+                            timeSpan.textContent = activityDate.toLocaleDateString();
+                        } else {
+                            timeSpan.textContent = 'Recently';
+                        }
+                        
+                        li.appendChild(actionSpan);
+                        li.appendChild(timeSpan);
+                        activityList.appendChild(li);
+                    });
+                }
+            }
+        }
+        
+        // Logout function
+        function logout() {
+            localStorage.removeItem('quizontalUser');
+            localStorage.removeItem('quizontalToken');
+            localStorage.removeItem('isLoggedIn');
+            
+            // Hide dashboard, show auth container
+            dashboardContainer.style.display = 'none';
+            authContainer.style.display = 'flex';
+            
+            // Reset forms
+            loginForm.reset();
+            signupForm.reset();
+            loginToggle.click();
+        }
+
         // Toggle between login and signup forms
         loginToggle.addEventListener('click', () => {
             loginToggle.classList.add('active');
@@ -672,6 +1007,7 @@
             if (email === 'demo@quizontal.com' && password === 'demo123') {
                 // Store demo user data
                 const user = {
+                    uid: 'demo-user-123',
                     name: 'Demo User',
                     email: email,
                     isDemo: true
@@ -680,10 +1016,10 @@
                 localStorage.setItem('quizontalUser', JSON.stringify(user));
                 localStorage.setItem('isLoggedIn', 'true');
                 
-                // Hide spinner and redirect after delay
+                // Hide spinner and show dashboard after delay
                 setTimeout(() => {
                     loginSpinner.style.display = 'none';
-                    window.location.href = 'service.html';
+                    showDashboard(user);
                 }, 1500);
             } else {
                 // Hide spinner and show error
@@ -719,10 +1055,14 @@
             setTimeout(() => {
                 // Store user data
                 const user = {
+                    uid: 'user-' + Date.now(),
                     name: name,
                     email: email,
                     joined: new Date().toISOString()
                 };
+                
+                // Store in Firebase (for demo, we'll just use localStorage)
+                storeUserInFirebase(user, true);
                 
                 localStorage.setItem('quizontalUser', JSON.stringify(user));
                 localStorage.setItem('isLoggedIn', 'true');
@@ -731,19 +1071,24 @@
                 signupSpinner.style.display = 'none';
                 successMessage.style.display = 'block';
                 
-                // Redirect to service.html after 2 seconds
+                // Show dashboard after 2 seconds
                 setTimeout(() => {
-                    window.location.href = 'service.html';
+                    showDashboard(user);
                 }, 2000);
             }, 2000);
         });
         
+        // Logout button event
+        logoutBtn.addEventListener('click', logout);
+        
         // Check if user is already logged in
         function checkAuthStatus() {
             const isLoggedIn = localStorage.getItem('isLoggedIn');
-            if (isLoggedIn === 'true') {
-                // User is already logged in, redirect to service page
-                window.location.href = 'service.html';
+            const userData = localStorage.getItem('quizontalUser');
+            
+            if (isLoggedIn === 'true' && userData) {
+                const user = JSON.parse(userData);
+                showDashboard(user);
             }
         }
         
