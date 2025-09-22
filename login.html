@@ -230,6 +230,16 @@
             margin: 20px auto;
         }
 
+        /* Logout Message Styles */
+        .logout-message {
+            background: rgba(220, 53, 69, 0.2);
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: none;
+        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -245,6 +255,11 @@
 <body>
     <!-- Auth Container -->
     <div class="container" id="authContainer">
+        <!-- Logout Message -->
+        <div class="logout-message" id="logoutMessage">
+            <strong>You have been logged out successfully.</strong> Please log in again to access your dashboard.
+        </div>
+
         <div class="header">
             <div class="logo">QUIZONTAL</div>
             <p class="tagline">Create WhatsApp bots, design websites, and access powerful tools</p>
@@ -361,6 +376,7 @@
         
         // DOM Elements
         const authContainer = document.getElementById('authContainer');
+        const logoutMessage = document.getElementById('logoutMessage');
         const loginToggle = document.getElementById('loginToggle');
         const signupToggle = document.getElementById('signupToggle');
         const loginForm = document.getElementById('loginForm');
@@ -531,6 +547,17 @@
             window.location.href = 'dashboard.html';
         }
 
+        // Logout function (called from dashboard)
+        function logout() {
+            // Clear all authentication data
+            localStorage.removeItem('quizontalUser');
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('justLoggedOut'); // Clear the flag
+            
+            // Redirect to login page with logout parameter
+            window.location.href = 'index.html?logout=true';
+        }
+
         // Spinner functions
         function showSpinner() {
             document.querySelectorAll('.spinner').forEach(spinner => {
@@ -551,6 +578,7 @@
             loginForm.classList.add('active');
             signupForm.classList.remove('active');
             successMessage.style.display = 'none';
+            logoutMessage.style.display = 'none';
         });
         
         signupToggle.addEventListener('click', () => {
@@ -559,6 +587,7 @@
             signupForm.classList.add('active');
             loginForm.classList.remove('active');
             successMessage.style.display = 'none';
+            logoutMessage.style.display = 'none';
         });
         
         loginForm.addEventListener('submit', async (e) => {
@@ -585,14 +614,25 @@
 
         // Check auth status on load - redirect to dashboard if already logged in
         function checkAuthStatus() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isLogout = urlParams.get('logout');
+            
+            // Show logout message if user just logged out
+            if (isLogout === 'true') {
+                logoutMessage.style.display = 'block';
+            }
+            
             const isLoggedIn = localStorage.getItem('isLoggedIn');
             const userData = localStorage.getItem('quizontalUser');
             
-            if (isLoggedIn === 'true' && userData) {
+            if (isLoggedIn === 'true' && userData && isLogout !== 'true') {
                 // User is already logged in, redirect to dashboard
                 redirectToDashboard();
             }
         }
+
+        // Make logout function globally available
+        window.logout = logout;
 
         // Initialize
         window.onload = function() {
