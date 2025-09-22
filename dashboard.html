@@ -1016,116 +1016,289 @@
         </div>
     </div>
 
-    <script>
-        // Authentication check
-        window.addEventListener('DOMContentLoaded', function() {
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
-            const userData = localStorage.getItem('quizontalUser');
+<script>
+    // Authentication check
+    window.addEventListener('DOMContentLoaded', function() {
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+        const userData = localStorage.getItem('quizontalUser');
+        
+        if (isLoggedIn !== 'true' || !userData) {
+            // Redirect to login page if not authenticated
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        // Load user data into dashboard
+        const user = JSON.parse(userData);
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('userGreeting').textContent = user.name.split(' ')[0];
+        document.getElementById('userAvatar').src = user.picture || 
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=00D084&color=fff`;
+        document.getElementById('userEmail').textContent = user.email;
             
-            if (isLoggedIn !== 'true' || !userData) {
-                // Redirect to login page if not authenticated
-                window.location.href = 'index.html';
-                return;
+        // Initialize the dashboard
+        initializeDashboard();
+        
+        // Load user stats from Firebase/localStorage
+        loadUserStats(user.uid);
+    });
+
+    // Enhanced logout function
+    function logout() {
+        // Show confirmation dialog
+        if (confirm('Are you sure you want to log out?')) {
+            // Clear authentication data
+            localStorage.removeItem('quizontalUser');
+            localStorage.removeItem('isLoggedIn');
+            
+            // Optional: Clear any other user-related data
+            localStorage.removeItem('userPreferences');
+            localStorage.removeItem('recentActivity');
+            
+            // Set flag for logout message on login page
+            localStorage.setItem('justLoggedOut', 'true');
+            
+            // Redirect to login page with logout parameter
+            window.location.href = 'index.html?logout=true';
+        }
+    }
+
+    // Load user statistics and service data
+    async function loadUserStats(uid) {
+        try {
+            // Try to get user data from Firebase first
+            const userData = await getUserData(uid);
+            
+            if (userData) {
+                // Update dashboard stats
+                updateDashboardStats(userData);
+            } else {
+                // Fallback to localStorage data
+                const localUserData = JSON.parse(localStorage.getItem('quizontalUsers') || '{}')[uid];
+                if (localUserData) {
+                    updateDashboardStats(localUserData);
+                }
             }
-            
-            // Load user data into dashboard
-            const user = JSON.parse(userData);
-            document.getElementById('userName').textContent = user.name;
-            document.getElementById('userGreeting').textContent = user.name.split(' ')[0];
-            document.getElementById('userAvatar').src = user.picture || 
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=00D084&color=fff`;
-            document.getElementById('userEmail').textContent = user.email;
+        } catch (error) {
+            console.error('Error loading user stats:', error);
+        }
+    }
+
+    // Get user data from Firebase
+    async function getUserData(uid) {
+        try {
+            // Initialize Firebase if not already done
+            if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+                const userDoc = await firebase.firestore().collection('users').doc(uid).get();
+                if (userDoc.exists) {
+                    return userDoc.data();
+                }
+            }
+            return null;
+        } catch (error) {
+            console.log('Firebase not available, using localStorage data');
+            return null;
+        }
+    }
+
+    // Update dashboard statistics
+    function updateDashboardStats(userData) {
+        // Update service counters
+        if (userData.services) {
+            document.getElementById('whatsappBotsCount').textContent = userData.services.whatsappBots || 0;
+            document.getElementById('websitesCount').textContent = userData.services.websites || 0;
+            document.getElementById('videosDownloaded').textContent = userData.services.youtubeDownloads || 0;
+            document.getElementById('designProjects').textContent = 
+                (userData.services.logos || 0) + (userData.services.marketingMaterials || 0);
+        }
+        
+        // Update user plan
+        if (userData.plan) {
+            document.getElementById('userPlan').textContent = userData.plan.charAt(0).toUpperCase() + userData.plan.slice(1) + ' Plan';
+        }
+        
+        // Update member since date
+        if (userData.joined) {
+            const joinDate = userData.joined.toDate ? userData.joined.toDate() : new Date(userData.joined);
+            document.getElementById('memberSince').textContent = joinDate.toLocaleDateString();
+        }
+    }
+
+    // Tab navigation
+    function initializeDashboard() {
+        // Sidebar navigation
+        document.querySelectorAll('.sidebar-menu a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
                 
-            // Initialize the dashboard
-            initializeDashboard();
+                // Remove active class from all links
+                document.querySelectorAll('.sidebar-menu a').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Add active class to clicked link
+                this.classList.add('active');
+                
+                // Hide all tab contents
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Show selected tab content
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+                
+                // Update page title
+                document.getElementById('pageTitle').textContent = this.querySelector('span').textContent;
+                
+                // Save current tab to localStorage for persistence
+                localStorage.setItem('lastActiveTab', tabId);
+            });
         });
 
-        // Tab navigation
-        function initializeDashboard() {
-            // Sidebar navigation
-            document.querySelectorAll('.sidebar-menu a').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Remove active class from all links
-                    document.querySelectorAll('.sidebar-menu a').forEach(item => {
-                        item.classList.remove('active');
-                    });
-                    
-                    // Add active class to clicked link
-                    this.classList.add('active');
-                    
-                    // Hide all tab contents
-                    document.querySelectorAll('.tab-content').forEach(tab => {
-                        tab.classList.remove('active');
-                    });
-                    
-                    // Show selected tab content
-                    const tabId = this.getAttribute('data-tab');
-                    document.getElementById(tabId).classList.add('active');
-                    
-                    // Update page title
-                    document.getElementById('pageTitle').textContent = this.querySelector('span').textContent;
+        // Sub tab navigation
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs
+                document.querySelectorAll('.tab').forEach(item => {
+                    item.classList.remove('active');
                 });
-            });
-
-            // Sub tab navigation
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    // Remove active class from all tabs
-                    document.querySelectorAll('.tab').forEach(item => {
-                        item.classList.remove('active');
-                    });
-                    
-                    // Add active class to clicked tab
-                    this.classList.add('active');
-                    
-                    // Hide all sub tab contents
-                    document.querySelectorAll('.subtab-content').forEach(content => {
-                        content.classList.remove('active');
-                    });
-                    
-                    // Show selected sub tab content
-                    const subtabId = this.getAttribute('data-subtab');
-                    document.getElementById(subtabId).classList.add('active');
+                
+                // Add active class to clicked tab
+                this.classList.add('active');
+                
+                // Hide all sub tab contents
+                document.querySelectorAll('.subtab-content').forEach(content => {
+                    content.classList.remove('active');
                 });
+                
+                // Show selected sub tab content
+                const subtabId = this.getAttribute('data-subtab');
+                document.getElementById(subtabId).classList.add('active');
             });
+        });
 
-            // Mobile menu toggle
-            document.getElementById('menuToggle').addEventListener('click', function() {
-                const sidebar = document.getElementById('sidebar');
-                sidebar.classList.toggle('active');
-            });
+        // Mobile menu toggle
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+            
+            // Close menu when clicking outside on mobile
+            if (sidebar.classList.contains('active')) {
+                document.addEventListener('click', closeMenuOnClickOutside);
+            } else {
+                document.removeEventListener('click', closeMenuOnClickOutside);
+            }
+        });
 
-            // Logout functionality
-            document.getElementById('logoutBtn').addEventListener('click', function() {
-                localStorage.removeItem('quizontalUser');
-                localStorage.removeItem('isLoggedIn');
-                window.location.href = 'index.html';
-            });
+        // Close menu when clicking outside (mobile)
+        function closeMenuOnClickOutside(e) {
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.getElementById('menuToggle');
+            
+            if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                sidebar.classList.remove('active');
+                document.removeEventListener('click', closeMenuOnClickOutside);
+            }
         }
 
-        // Function to show specific tab (for quick actions)
-        function showTab(tabId) {
-            // Remove active class from all links
-            document.querySelectorAll('.sidebar-menu a').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // Add active class to target link
-            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
-            
-            // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Show selected tab content
-            document.getElementById(tabId).classList.add('active');
-            
-            // Update page title
-            document.getElementById('pageTitle').textContent = document.querySelector(`[data-tab="${tabId}"] span`).textContent;
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        
+        // Keyboard shortcut for logout (Ctrl+Q)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'q') {
+                e.preventDefault();
+                logout();
+            }
+        });
+
+        // Restore last active tab
+        const lastActiveTab = localStorage.getItem('lastActiveTab');
+        if (lastActiveTab && document.querySelector(`[data-tab="${lastActiveTab}"]`)) {
+            document.querySelector(`[data-tab="${lastActiveTab}"]`).click();
         }
-    </script>
+
+        // Auto-save form data
+        initializeAutoSave();
+    }
+
+    // Auto-save form data functionality
+    function initializeAutoSave() {
+        const formElements = document.querySelectorAll('.form-control');
+        
+        formElements.forEach(element => {
+            // Load saved data
+            const savedValue = localStorage.getItem(`form_${element.id}`);
+            if (savedValue) {
+                element.value = savedValue;
+            }
+            
+            // Save on input
+            element.addEventListener('input', function() {
+                localStorage.setItem(`form_${this.id}`, this.value);
+            });
+        });
+    }
+
+    // Function to show specific tab (for quick actions)
+    function showTab(tabId) {
+        const tabLink = document.querySelector(`[data-tab="${tabId}"]`);
+        if (tabLink) {
+            tabLink.click();
+        }
+    }
+
+    // Service creation functions
+    function createWhatsAppBot() {
+        // Add your WhatsApp bot creation logic here
+        alert('WhatsApp Bot creation feature will be implemented soon!');
+        // This would typically open a modal or navigate to bot creation interface
+    }
+
+    function createWebsiteProject() {
+        // Add your website project creation logic here
+        alert('Website Project creation feature will be implemented soon!');
+    }
+
+    function designLogo() {
+        // Add your logo design logic here
+        alert('Logo Design feature will be implemented soon!');
+    }
+
+    function downloadYouTubeVideo() {
+        // Add your YouTube downloader logic here
+        alert('YouTube Video Downloader will be implemented soon!');
+    }
+
+    // Make functions globally available
+    window.logout = logout;
+    window.showTab = showTab;
+    window.createWhatsAppBot = createWhatsAppBot;
+    window.createWebsiteProject = createWebsiteProject;
+    window.designLogo = designLogo;
+    window.downloadYouTubeVideo = downloadYouTubeVideo;
+
+    // Session timeout handling (optional)
+    let inactivityTime = function() {
+        let time;
+        window.onload = resetTimer;
+        document.onmousemove = resetTimer;
+        document.onkeypress = resetTimer;
+        
+        function logout() {
+            alert('You have been logged out due to inactivity.');
+            window.logout();
+        }
+        
+        function resetTimer() {
+            clearTimeout(time);
+            time = setTimeout(logout, 1800000); // 30 minutes
+        }
+    };
+    
+    // Uncomment to enable session timeout
+    // inactivityTime();
+</script>
 </body>
 </html>
