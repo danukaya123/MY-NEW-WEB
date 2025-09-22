@@ -6,16 +6,41 @@
     <title>Quizontal - Login & Signup</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
+        :root {
+            --bs-blue: #0d6efd;
+            --bs-indigo: #6610f2;
+            --bs-purple: #6f42c1;
+            --bs-pink: #d63384;
+            --bs-red: #dc3545;
+            --bs-orange: #fd7e14;
+            --bs-yellow: #ffc107;
+            --bs-green: #198754;
+            --bs-teal: #20c997;
+            --bs-cyan: #0dcaf0;
+            --bs-white: #fff;
+            --bs-gray: #6c757d;
+            --bs-gray-dark: #343a40;
+            --bs-primary: #00D084;
+            --bs-secondary: #17303B;
+            --bs-success: #198754;
+            --bs-info: #0dcaf0;
+            --bs-warning: #ffc107;
+            --bs-danger: #dc3545;
+            --bs-light: #F8F8F8;
+            --bs-dark: #111111;
+            --bs-font-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: var(--bs-font-sans-serif);
         }
 
         body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
+            background: var(--bs-secondary);
+            color: var(--bs-white);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -40,9 +65,7 @@
         .logo {
             font-size: 3rem;
             font-weight: 800;
-            background: linear-gradient(45deg, #00dbde, #fc00ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--bs-primary);
             margin-bottom: 10px;
             letter-spacing: 2px;
         }
@@ -52,52 +75,72 @@
             opacity: 0.8;
             max-width: 600px;
             margin: 0 auto;
+            color: var(--bs-light);
         }
 
         .auth-container {
             display: flex;
             width: 100%;
             max-width: 900px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(23, 48, 59, 0.8);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
+            border-radius: 15px;
             overflow: hidden;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 208, 132, 0.2);
         }
 
         .welcome-section {
             flex: 1;
-            background: linear-gradient(135deg, #00dbde 0%, #fc00ff 100%);
+            background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-secondary) 100%);
             padding: 40px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" opacity="0.1"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
         }
 
         .welcome-section h2 {
             font-size: 2.2rem;
             margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
         }
 
         .welcome-section p {
             font-size: 1.1rem;
             line-height: 1.6;
             opacity: 0.9;
+            position: relative;
+            z-index: 1;
         }
 
         .form-section {
             flex: 1;
             padding: 40px;
+            background: var(--bs-secondary);
         }
 
         .form-toggle {
             display: flex;
             margin-bottom: 30px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(0, 208, 132, 0.1);
             border-radius: 10px;
             padding: 5px;
+            border: 1px solid rgba(0, 208, 132, 0.2);
         }
 
         .toggle-btn {
@@ -106,7 +149,7 @@
             text-align: center;
             background: transparent;
             border: none;
-            color: #fff;
+            color: var(--bs-light);
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
@@ -115,7 +158,8 @@
         }
 
         .toggle-btn.active {
-            background: linear-gradient(135deg, #00dbde 0%, #fc00ff 100%);
+            background: var(--bs-primary);
+            color: var(--bs-white);
         }
 
         .auth-form {
@@ -140,23 +184,24 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
+            color: var(--bs-light);
         }
 
         .form-group input {
             width: 100%;
             padding: 14px;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
+            background: rgba(23, 48, 59, 0.7);
+            color: var(--bs-white);
             font-size: 1rem;
             transition: all 0.3s ease;
         }
 
         .form-group input:focus {
             outline: none;
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 0 0 2px rgba(0, 219, 222, 0.5);
+            border-color: var(--bs-primary);
+            box-shadow: 0 0 0 2px rgba(0, 208, 132, 0.2);
         }
 
         .password-container {
@@ -170,7 +215,7 @@
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: #aaa;
+            color: var(--bs-gray);
             cursor: pointer;
         }
 
@@ -190,14 +235,19 @@
             margin-right: 8px;
         }
 
+        .remember-me label {
+            color: var(--bs-light);
+            margin-bottom: 0;
+        }
+
         .forgot-password {
-            color: #00dbde;
+            color: var(--bs-primary);
             text-decoration: none;
             transition: color 0.3s ease;
         }
 
         .forgot-password:hover {
-            color: #fc00ff;
+            color: var(--bs-light);
         }
 
         .btn {
@@ -212,14 +262,15 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #00dbde 0%, #fc00ff 100%);
-            color: white;
+            background: var(--bs-primary);
+            color: var(--bs-white);
             margin-bottom: 20px;
         }
 
         .btn-primary:hover {
+            background: #00b874;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 219, 222, 0.4);
+            box-shadow: 0 5px 15px rgba(0, 208, 132, 0.4);
         }
 
         .divider {
@@ -235,27 +286,29 @@
             left: 0;
             right: 0;
             height: 1px;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .divider span {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bs-secondary);
             padding: 0 15px;
             font-size: 0.9rem;
-            color: #aaa;
+            color: var(--bs-gray);
         }
 
         .google-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #fff;
+            background: var(--bs-white);
             color: #444;
             border: 1px solid #ddd;
+            transition: all 0.3s ease;
         }
 
         .google-btn:hover {
             background: #f5f5f5;
+            transform: translateY(-2px);
         }
 
         .google-icon {
@@ -268,44 +321,53 @@
             text-align: center;
             margin-top: 25px;
             font-size: 0.9rem;
+            color: var(--bs-light);
         }
 
         .form-footer a {
-            color: #00dbde;
+            color: var(--bs-primary);
             text-decoration: none;
             transition: color 0.3s ease;
         }
 
         .form-footer a:hover {
-            color: #fc00ff;
+            color: var(--bs-light);
         }
 
         .terms {
             font-size: 0.8rem;
             margin-top: 15px;
             opacity: 0.7;
+            color: var(--bs-light);
         }
 
         .demo-credentials {
-            background: rgba(0, 219, 222, 0.1);
+            background: rgba(0, 208, 132, 0.1);
             border-radius: 8px;
             padding: 15px;
             margin-top: 20px;
             font-size: 0.85rem;
+            border: 1px solid rgba(0, 208, 132, 0.2);
         }
 
         .demo-credentials h4 {
             margin-bottom: 8px;
-            color: #00dbde;
+            color: var(--bs-primary);
+        }
+
+        .demo-credentials p {
+            color: var(--bs-light);
+            margin-bottom: 5px;
         }
 
         .success-message {
-            background: rgba(0, 200, 83, 0.2);
-            border-left: 4px solid #00c853;
+            background: rgba(25, 135, 84, 0.2);
+            border-left: 4px solid var(--bs-success);
             padding: 15px;
             margin-top: 20px;
             border-radius: 4px;
             display: none;
+            color: var(--bs-light);
         }
 
         @media (max-width: 768px) {
@@ -320,6 +382,23 @@
             .form-section {
                 padding: 30px 20px;
             }
+        }
+
+        /* Spinner for loading state */
+        .spinner {
+            display: none;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--bs-primary);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -386,6 +465,8 @@
                         <p>Email: demo@quizontal.com</p>
                         <p>Password: demo123</p>
                     </div>
+
+                    <div class="spinner" id="loginSpinner"></div>
                 </form>
                 
                 <!-- Signup Form -->
@@ -432,10 +513,12 @@
                     <div class="form-footer">
                         <p class="terms">By creating an account, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
                     </div>
+
+                    <div class="spinner" id="signupSpinner"></div>
                 </form>
                 
                 <div class="success-message" id="successMessage">
-                    Account created successfully! You can now login with your credentials.
+                    Account created successfully! Redirecting to services...
                 </div>
             </div>
         </div>
@@ -455,9 +538,16 @@
         const loginPassword = document.getElementById('loginPassword');
         const signupPassword = document.getElementById('signupPassword');
         const successMessage = document.getElementById('successMessage');
+        const loginSpinner = document.getElementById('loginSpinner');
+        const signupSpinner = document.getElementById('signupSpinner');
         
         // Initialize Google Sign In
         function initializeGoogleSignIn() {
+            if (typeof google === 'undefined') {
+                console.error('Google Sign-In library not loaded');
+                return;
+            }
+            
             // Google Sign In configuration for LOGIN
             google.accounts.id.initialize({
                 client_id: GOOGLE_CLIENT_ID,
@@ -508,6 +598,9 @@
         function handleGoogleSignIn(response) {
             console.log('Google Sign In response:', response);
             
+            // Show loading spinner
+            document.querySelector('.spinner').style.display = 'block';
+            
             // The response.credential is a JWT token
             const credential = response.credential;
             
@@ -523,42 +616,18 @@
                 email_verified: payload.email_verified
             };
             
-            // Store user data in localStorage (for demo purposes)
-            localStorage.setItem('googleUser', JSON.stringify(user));
-            localStorage.setItem('googleToken', credential);
+            // Store user data in localStorage
+            localStorage.setItem('quizontalUser', JSON.stringify(user));
+            localStorage.setItem('quizontalToken', credential);
+            localStorage.setItem('isLoggedIn', 'true');
             
-            // Show success message
-            alert(`Welcome ${user.name}! Google authentication successful.`);
+            // Hide spinner
+            document.querySelector('.spinner').style.display = 'none';
             
-            // Redirect to dashboard or main application
-            // window.location.href = 'dashboard.html';
-            
-            // In a real app, you would send the token to your backend for verification
-            // verifyGoogleToken(credential);
-        }
-        
-        // Function to verify Google token with your backend (example)
-        async function verifyGoogleToken(token) {
-            try {
-                const response = await fetch('/api/auth/google', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ token })
-                });
-                
-                if (response.ok) {
-                    const userData = await response.json();
-                    // Handle successful authentication
-                    console.log('Backend verification successful:', userData);
-                } else {
-                    throw new Error('Token verification failed');
-                }
-            } catch (error) {
-                console.error('Authentication failed:', error);
-                alert('Authentication failed. Please try again.');
-            }
+            // Redirect to service.html after successful authentication
+            setTimeout(() => {
+                window.location.href = 'service.html';
+            }, 1000);
         }
         
         // Toggle between login and signup forms
@@ -596,13 +665,32 @@
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             
+            // Show loading spinner
+            loginSpinner.style.display = 'block';
+            
             // Demo validation
             if (email === 'demo@quizontal.com' && password === 'demo123') {
-                alert('Login successful! Redirecting to dashboard...');
-                // In a real app, you would redirect to the dashboard
-                // window.location.href = 'dashboard.html';
+                // Store demo user data
+                const user = {
+                    name: 'Demo User',
+                    email: email,
+                    isDemo: true
+                };
+                
+                localStorage.setItem('quizontalUser', JSON.stringify(user));
+                localStorage.setItem('isLoggedIn', 'true');
+                
+                // Hide spinner and redirect after delay
+                setTimeout(() => {
+                    loginSpinner.style.display = 'none';
+                    window.location.href = 'service.html';
+                }, 1500);
             } else {
-                alert('Invalid credentials. Try demo@quizontal.com / demo123');
+                // Hide spinner and show error
+                setTimeout(() => {
+                    loginSpinner.style.display = 'none';
+                    alert('Invalid credentials. Try demo@quizontal.com / demo123');
+                }, 1000);
             }
         });
         
@@ -624,18 +712,44 @@
                 return;
             }
             
-            // Simulate account creation
-            console.log('Account created:', { name, email, password });
+            // Show loading spinner
+            signupSpinner.style.display = 'block';
             
-            // Show success message and switch to login
-            successMessage.style.display = 'block';
+            // Simulate account creation with delay
             setTimeout(() => {
-                loginToggle.click();
+                // Store user data
+                const user = {
+                    name: name,
+                    email: email,
+                    joined: new Date().toISOString()
+                };
+                
+                localStorage.setItem('quizontalUser', JSON.stringify(user));
+                localStorage.setItem('isLoggedIn', 'true');
+                
+                // Hide spinner and show success message
+                signupSpinner.style.display = 'none';
+                successMessage.style.display = 'block';
+                
+                // Redirect to service.html after 2 seconds
+                setTimeout(() => {
+                    window.location.href = 'service.html';
+                }, 2000);
             }, 2000);
         });
         
+        // Check if user is already logged in
+        function checkAuthStatus() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (isLoggedIn === 'true') {
+                // User is already logged in, redirect to service page
+                window.location.href = 'service.html';
+            }
+        }
+        
         // Initialize when page loads
         window.onload = function() {
+            checkAuthStatus();
             initializeGoogleSignIn();
         };
     </script>
