@@ -3,12 +3,10 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 	<!-- Boxicons -->
 	<link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
 	<!-- My CSS -->
 	<link rel="stylesheet" href="style.css">
-
 	<title>AdminHub - Dashboard</title>
 </head>
 <body>
@@ -20,9 +18,15 @@
 		</a>
 		<ul class="side-menu top">
 			<li class="active">
-				<a href="#">
+				<a href="#dashboard-section">
 					<i class='bx bxs-dashboard' ></i>
 					<span class="text">Dashboard</span>
+				</a>
+			</li>
+			<li>
+				<a href="#profile-section">
+					<i class='bx bxs-user' ></i>
+					<span class="text">My Profile</span>
 				</a>
 			</li>
 			<li>
@@ -65,7 +69,6 @@
 			</li>
 		</ul>
 	</section>
-	<!-- SIDEBAR -->
 
 	<!-- CONTENT -->
 	<section id="content">
@@ -87,149 +90,233 @@
 			</a>
 			<a href="#" class="profile">
 				<img src="img/people.png">
+				<span class="profile-name"></span>
 			</a>
 		</nav>
-		<!-- NAVBAR -->
 
 		<!-- MAIN -->
 		<main>
-			<div class="head-title">
-				<div class="left">
-					<h1>Dashboard</h1>
-					<ul class="breadcrumb">
-						<li>
-							<a href="#">Dashboard</a>
-						</li>
-						<li><i class='bx bx-chevron-right' ></i></li>
-						<li>
-							<a class="active" href="#">Home</a>
-						</li>
-					</ul>
+			<!-- Dashboard Section -->
+			<div id="dashboard-section" class="section active">
+				<div class="head-title">
+					<div class="left">
+						<h1>Dashboard</h1>
+						<ul class="breadcrumb">
+							<li><a href="#">Dashboard</a></li>
+							<li><i class='bx bx-chevron-right' ></i></li>
+							<li><a class="active" href="#">Home</a></li>
+						</ul>
+					</div>
+					<a href="#" class="btn-download">
+						<i class='bx bxs-cloud-download' ></i>
+						<span class="text">Download PDF</span>
+					</a>
 				</div>
-				<a href="#" class="btn-download">
-					<i class='bx bxs-cloud-download' ></i>
-					<span class="text">Download PDF</span>
-				</a>
+
+				<ul class="box-info">
+					<li>
+						<i class='bx bxs-calendar-check' ></i>
+						<span class="text">
+							<h3>1020</h3>
+							<p>New Order</p>
+						</span>
+					</li>
+					<li>
+						<i class='bx bxs-group' ></i>
+						<span class="text">
+							<h3>2834</h3>
+							<p>Visitors</p>
+						</span>
+					</li>
+					<li>
+						<i class='bx bxs-dollar-circle' ></i>
+						<span class="text">
+							<h3>$2543</h3>
+							<p>Total Sales</p>
+						</span>
+					</li>
+				</ul>
+
+				<div class="table-data">
+					<div class="order">
+						<div class="head">
+							<h3>Recent Orders</h3>
+							<i class='bx bx-search' ></i>
+							<i class='bx bx-filter' ></i>
+						</div>
+						<table>
+							<thead>
+								<tr>
+									<th>User</th>
+									<th>Date Order</th>
+									<th>Status</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td><img src="img/people.png"><p>John Doe</p></td>
+									<td>01-10-2021</td>
+									<td><span class="status completed">Completed</span></td>
+								</tr>
+								<tr>
+									<td><img src="img/people.png"><p>John Doe</p></td>
+									<td>01-10-2021</td>
+									<td><span class="status pending">Pending</span></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="todo">
+						<div class="head">
+							<h3>Todos</h3>
+							<i class='bx bx-plus' ></i>
+							<i class='bx bx-filter' ></i>
+						</div>
+						<ul class="todo-list">
+							<li class="completed"><p>Complete profile setup</p><i class='bx bx-dots-vertical-rounded' ></i></li>
+							<li class="not-completed"><p>Update business information</p><i class='bx bx-dots-vertical-rounded' ></i></li>
+						</ul>
+					</div>
+				</div>
 			</div>
 
-			<ul class="box-info">
-				<li>
-					<i class='bx bxs-calendar-check' ></i>
-					<span class="text">
-						<h3>1020</h3>
-						<p>New Order</p>
-					</span>
-				</li>
-				<li>
-					<i class='bx bxs-group' ></i>
-					<span class="text">
-						<h3>2834</h3>
-						<p>Visitors</p>
-					</span>
-				</li>
-				<li>
-					<i class='bx bxs-dollar-circle' ></i>
-					<span class="text">
-						<h3>$2543</h3>
-						<p>Total Sales</p>
-					</span>
-				</li>
-			</ul>
-
-			<div class="table-data">
-				<div class="order">
-					<div class="head">
-						<h3>Recent Orders</h3>
-						<i class='bx bx-search' ></i>
-						<i class='bx bx-filter' ></i>
+			<!-- Profile Section -->
+			<div id="profile-section" class="section">
+				<div class="head-title">
+					<div class="left">
+						<h1>My Profile</h1>
+						<ul class="breadcrumb">
+							<li><a href="#">Dashboard</a></li>
+							<li><i class='bx bx-chevron-right' ></i></li>
+							<li><a class="active" href="#">Profile</a></li>
+						</ul>
 					</div>
-					<table>
-						<thead>
-							<tr>
-								<th>User</th>
-								<th>Date Order</th>
-								<th>Status</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td>
-									<img src="img/people.png">
-									<p>John Doe</p>
-								</td>
-								<td>01-10-2021</td>
-								<td><span class="status completed">Completed</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="img/people.png">
-									<p>John Doe</p>
-								</td>
-								<td>01-10-2021</td>
-								<td><span class="status pending">Pending</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="img/people.png">
-									<p>John Doe</p>
-								</td>
-								<td>01-10-2021</td>
-								<td><span class="status process">Process</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="img/people.png">
-									<p>John Doe</p>
-								</td>
-								<td>01-10-2021</td>
-								<td><span class="status pending">Pending</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="img/people.png">
-									<p>John Doe</p>
-								</td>
-								<td>01-10-2021</td>
-								<td><span class="status completed">Completed</span></td>
-							</tr>
-						</tbody>
-					</table>
 				</div>
-				<div class="todo">
-					<div class="head">
-						<h3>Todos</h3>
-						<i class='bx bx-plus' ></i>
-						<i class='bx bx-filter' ></i>
+
+				<div class="profile-container">
+					<div class="profile-card">
+						<div class="profile-header">
+							<div class="avatar-section">
+								<img id="profile-avatar" src="img/people.png" alt="Profile Avatar">
+								<button class="btn-change-avatar" onclick="changeAvatar()">Change Avatar</button>
+							</div>
+							<div class="profile-info">
+								<h2 id="profile-name">Loading...</h2>
+								<p id="profile-email">Loading...</p>
+								<div class="profile-stats">
+									<div class="stat">
+										<span class="stat-number" id="joined-date">-</span>
+										<span class="stat-label">Member Since</span>
+									</div>
+									<div class="stat">
+										<span class="stat-number" id="last-login">-</span>
+										<span class="stat-label">Last Login</span>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="profile-form">
+							<h3>Edit Profile Information</h3>
+							<form id="profile-form">
+								<div class="form-group">
+									<label for="full-name">Full Name</label>
+									<input type="text" id="full-name" name="fullName" required>
+								</div>
+								
+								<div class="form-group">
+									<label for="phone">Phone Number</label>
+									<input type="tel" id="phone" name="phone">
+								</div>
+								
+								<div class="form-group">
+									<label for="company">Company</label>
+									<input type="text" id="company" name="company">
+								</div>
+								
+								<div class="form-group">
+									<label for="position">Position</label>
+									<input type="text" id="position" name="position">
+								</div>
+								
+								<div class="form-group">
+									<label for="bio">Bio</label>
+									<textarea id="bio" name="bio" rows="4" placeholder="Tell us about yourself..."></textarea>
+								</div>
+								
+								<div class="form-actions">
+									<button type="button" class="btn-cancel" onclick="resetForm()">Cancel</button>
+									<button type="submit" class="btn-save">Save Changes</button>
+								</div>
+							</form>
+						</div>
 					</div>
-					<ul class="todo-list">
-						<li class="completed">
-							<p>Todo List</p>
-							<i class='bx bx-dots-vertical-rounded' ></i>
-						</li>
-						<li class="completed">
-							<p>Todo List</p>
-							<i class='bx bx-dots-vertical-rounded' ></i>
-						</li>
-						<li class="not-completed">
-							<p>Todo List</p>
-							<i class='bx bx-dots-vertical-rounded' ></i>
-						</li>
-						<li class="completed">
-							<p>Todo List</p>
-							<i class='bx bx-dots-vertical-rounded' ></i>
-						</li>
-						<li class="not-completed">
-							<p>Todo List</p>
-							<i class='bx bx-dots-vertical-rounded' ></i>
-						</li>
-					</ul>
+
+					<div class="profile-sidebar">
+						<div class="info-card">
+							<h3>Account Information</h3>
+							<div class="info-item">
+								<span class="info-label">Account Status:</span>
+								<span class="info-value status-active">Active</span>
+							</div>
+							<div class="info-item">
+								<span class="info-label">Plan:</span>
+								<span class="info-value" id="account-plan">Starter</span>
+							</div>
+							<div class="info-item">
+								<span class="info-label">Email Verified:</span>
+								<span class="info-value" id="email-verified">No</span>
+							</div>
+						</div>
+
+						<div class="quick-actions">
+							<h3>Quick Actions</h3>
+							<button class="btn-action" onclick="changePassword()">
+								<i class='bx bxs-lock' ></i>
+								Change Password
+							</button>
+							<button class="btn-action" onclick="exportData()">
+								<i class='bx bxs-download' ></i>
+								Export Data
+							</button>
+							<button class="btn-action" onclick="deleteAccount()">
+								<i class='bx bxs-trash' ></i>
+								Delete Account
+							</button>
+						</div>
+					</div>
 				</div>
 			</div>
 		</main>
-		<!-- MAIN -->
 	</section>
-	<!-- CONTENT -->
-	
+
+	<!-- Profile Completion Modal -->
+	<div id="profile-modal" class="modal">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h2>Complete Your Profile</h2>
+				<p>Please provide some additional information to complete your profile setup.</p>
+			</div>
+			<form id="initial-profile-form">
+				<div class="form-group">
+					<label for="modal-phone">Phone Number</label>
+					<input type="tel" id="modal-phone" name="phone" required>
+				</div>
+				<div class="form-group">
+					<label for="modal-company">Company</label>
+					<input type="text" id="modal-company" name="company">
+				</div>
+				<div class="form-group">
+					<label for="modal-position">Position</label>
+					<input type="text" id="modal-position" name="position">
+				</div>
+				<div class="modal-actions">
+					<button type="submit" class="btn-primary">Save and Continue</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
 	<script src="script.js"></script>
 </body>
 </html>
