@@ -831,3 +831,150 @@ body {
         justify-content: center;
     }
 }
+
+/* Avatar Upload Progress */
+.avatar-upload-progress {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--grey);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--blue);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 0.8em;
+    color: var(--dark-grey);
+}
+
+/* Activity Log */
+.profile-activity {
+    background: var(--light);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--grey);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--light-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+
+.activity-icon i {
+    color: var(--blue);
+    font-size: 16px;
+}
+
+.activity-details {
+    flex: 1;
+}
+
+.activity-text {
+    margin: 0;
+    font-size: 0.9em;
+    color: var(--dark);
+}
+
+.activity-time {
+    font-size: 0.8em;
+    color: var(--dark-grey);
+}
+
+/* Enhanced profile stats */
+.profile-stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    text-align: center;
+    padding: 10px;
+    background: var(--grey);
+    border-radius: 8px;
+    min-width: 100px;
+}
+
+.stat-number {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--blue);
+}
+
+.stat-label {
+    font-size: 0.8em;
+    color: var(--dark-grey);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Enhanced form styles */
+.form-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 2px rgba(60, 145, 230, 0.2);
+    outline: none;
+}
+
+/* Notification animations */
+.notification {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .profile-stats {
+        justify-content: center;
+    }
+    
+    .stat {
+        min-width: 80px;
+    }
+    
+    .activity-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .activity-icon {
+        margin-right: 0;
+        margin-bottom: 5px;
+    }
+}
