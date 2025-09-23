@@ -15,6 +15,8 @@ const storage = firebase.storage();
 
 let currentUser = null;
 let userProfile = null;
+let currentStep = 1;
+const totalSteps = 2;
 
 // Check authentication status
 async function checkAuthStatus() {
@@ -22,14 +24,20 @@ async function checkAuthStatus() {
     const userData = localStorage.getItem('currentUser');
     
     if (!isLoggedIn || isLoggedIn !== 'true' || !userData) {
-        window.location.href = '/login/index.html';
+        window.location.href = 'index.html';
         return;
     }
     
     currentUser = JSON.parse(userData);
     await loadUserProfile();
     displayUserInfo();
-    checkProfileCompletion();
+    
+    // Check if profile needs completion (show modal if profile is incomplete)
+    if (!userProfile.profileComplete) {
+        setTimeout(() => {
+            showProfileModal();
+        }, 1000);
+    }
 }
 
 // Load user profile from Firestore
@@ -39,7 +47,6 @@ async function loadUserProfile() {
         
         if (userDoc.exists) {
             userProfile = userDoc.data();
-            updateUIWithProfileData();
         } else {
             // Create initial profile
             userProfile = {
@@ -48,8 +55,8 @@ async function loadUserProfile() {
                 email: currentUser.email,
                 picture: currentUser.picture,
                 email_verified: currentUser.email_verified || false,
-                joined: firebase.firestore.FieldValue.serverTimestamp(),
-                lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+                joined: new Date(),
+                lastLogin: new Date(),
                 plan: 'starter',
                 status: 'active',
                 profileComplete: false
@@ -60,8 +67,10 @@ async function loadUserProfile() {
         
         // Update last login
         await db.collection('users').doc(currentUser.uid).update({
-            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+            lastLogin: new Date()
         });
+        
+        updateUIWithProfileData();
         
     } catch (error) {
         console.error('Error loading profile:', error);
@@ -74,9 +83,12 @@ function updateUIWithProfileData() {
     if (!userProfile) return;
     
     // Update navbar
-    document.getElementById('nav-user-name').textContent = userProfile.name || 'User';
-    if (userProfile.picture) {
-        document.getElementById('nav-avatar').src = userProfile.picture;
+    const navUserName = document.getElementById('nav-user-name');
+    const navAvatar = document.getElementById('nav-avatar');
+    
+    if (navUserName) navUserName.textContent = userProfile.name || 'User';
+    if (navAvatar && userProfile.picture) {
+        navAvatar.src = userProfile.picture;
     }
     
     // Update profile section
@@ -95,7 +107,7 @@ function updateUIWithProfileData() {
     
     // Update dates
     if (userProfile.joined) {
-        const joinedDate = userProfile.joared.toDate ? userProfile.joined.toDate() : new Date(userProfile.joined);
+        const joinedDate = userProfile.joined.toDate ? userProfile.joined.toDate() : new Date(userProfile.joined);
         document.getElementById('joined-date').textContent = joinedDate.toLocaleDateString();
     }
     
@@ -103,14 +115,10 @@ function updateUIWithProfileData() {
     
     // Update account info
     document.getElementById('account-plan').textContent = userProfile.plan || 'Starter';
-    document.getElementById('email-verified').textContent = userProfile.email_verified ? 'Yes' : 'No';
     
     // Calculate profile completion percentage
     const completion = calculateProfileCompletion();
     document.getElementById('profile-complete').textContent = completion + '%';
-    
-    // Update progress bar
-    document.getElementById('profile-progress').style.width = completion + '%';
 }
 
 // Calculate profile completion percentage
@@ -118,16 +126,15 @@ function calculateProfileCompletion() {
     if (!userProfile) return 0;
     
     let completed = 0;
-    const totalFields = 6; // name, email, phone, company, position, bio
+    const fields = ['name', 'email', 'phone', 'company', 'position', 'bio'];
     
-    if (userProfile.name) completed++;
-    if (userProfile.email) completed++;
-    if (userProfile.phone) completed++;
-    if (userProfile.company) completed++;
-    if (userProfile.position) completed++;
-    if (userProfile.bio) completed++;
+    fields.forEach(field => {
+        if (userProfile[field] && userProfile[field].toString().trim() !== '') {
+            completed++;
+        }
+    });
     
-    return Math.round((completed / totalFields) * 100);
+    return Math.round((completed / fields.length) * 100);
 }
 
 // Save profile data to Firestore
@@ -135,11 +142,11 @@ async function saveProfileData(formData) {
     try {
         const updates = {
             ...formData,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+            lastUpdated: new Date(),
             profileComplete: calculateProfileCompletion() >= 80
         };
         
-        // Remove fullName and use name instead for consistency
+        // Use name instead of fullName for consistency
         if (updates.fullName) {
             updates.name = updates.fullName;
             delete updates.fullName;
@@ -152,9 +159,6 @@ async function saveProfileData(formData) {
         
         // Update UI
         updateUIWithProfileData();
-        
-        // Add activity log
-        await addActivity('Profile updated');
         
         showNotification('Profile updated successfully!', 'success');
         return true;
@@ -177,14 +181,11 @@ async function uploadAvatar(file) {
         // Update profile with new avatar URL
         await db.collection('users').doc(currentUser.uid).update({
             picture: downloadURL,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            lastUpdated: new Date()
         });
         
         userProfile.picture = downloadURL;
         updateUIWithProfileData();
-        
-        // Add activity log
-        await addActivity('Profile picture updated');
         
         showNotification('Avatar updated successfully!', 'success');
         return downloadURL;
@@ -203,14 +204,11 @@ async function removeAvatar() {
     try {
         await db.collection('users').doc(currentUser.uid).update({
             picture: '',
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            lastUpdated: new Date()
         });
         
         userProfile.picture = '';
         updateUIWithProfileData();
-        
-        // Add activity log
-        await addActivity('Profile picture removed');
         
         showNotification('Avatar removed successfully!', 'success');
     } catch (error) {
@@ -219,30 +217,30 @@ async function removeAvatar() {
     }
 }
 
-// Add activity log
-async function addActivity(activity) {
-    try {
-        await db.collection('activities').add({
-            userId: currentUser.uid,
-            activity: activity,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            type: 'profile_update'
-        });
-    } catch (error) {
-        console.error('Error adding activity:', error);
+// Show profile completion modal
+function showProfileModal() {
+    const modal = document.getElementById('profile-modal');
+    if (modal) {
+        modal.style.display = 'block';
+        updateModalProgress();
     }
 }
 
-// Profile completion modal functionality
-let currentStep = 1;
-const totalSteps = 2;
+// Update modal progress bar
+function updateModalProgress() {
+    const progress = document.getElementById('profile-progress');
+    const progressPercentage = (currentStep / totalSteps) * 100;
+    progress.style.width = progressPercentage + '%';
+}
 
+// Modal navigation functions
 function nextStep() {
     if (currentStep < totalSteps) {
         document.getElementById(`step-${currentStep}`).classList.remove('active');
         currentStep++;
         document.getElementById(`step-${currentStep}`).classList.add('active');
         updateModalButtons();
+        updateModalProgress();
     }
 }
 
@@ -252,6 +250,7 @@ function prevStep() {
         currentStep--;
         document.getElementById(`step-${currentStep}`).classList.add('active');
         updateModalButtons();
+        updateModalProgress();
     }
 }
 
@@ -260,36 +259,53 @@ function updateModalButtons() {
     const nextBtn = document.querySelector('.btn-next');
     const completeBtn = document.querySelector('.btn-complete');
     
-    prevBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
-    nextBtn.style.display = currentStep < totalSteps ? 'inline-block' : 'none';
-    completeBtn.style.display = currentStep === totalSteps ? 'inline-block' : 'none';
+    if (prevBtn) prevBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
+    if (nextBtn) nextBtn.style.display = currentStep < totalSteps ? 'inline-block' : 'none';
+    if (completeBtn) completeBtn.style.display = currentStep === totalSteps ? 'inline-block' : 'none';
 }
 
-// Check if profile needs completion
-function checkProfileCompletion() {
-    if (!userProfile || !userProfile.profileComplete) {
-        setTimeout(() => {
-            document.getElementById('profile-modal').style.display = 'block';
-        }, 2000);
+// Display user information
+function displayUserInfo() {
+    if (!currentUser) return;
+    
+    const profileName = document.querySelector('.profile-name');
+    const navAvatar = document.getElementById('nav-avatar');
+    
+    if (profileName) profileName.textContent = currentUser.name || 'User';
+    if (navAvatar && currentUser.picture) {
+        navAvatar.src = currentUser.picture;
     }
 }
 
-// Initialize dashboard
-function initializeDashboard() {
-    // ... (keep all your existing dashboard functionality)
+// Show notification
+function showNotification(message, type = 'success') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#ff9800'};
+        color: white;
+        border-radius: 5px;
+        z-index: 10000;
+        font-family: var(--lato);
+    `;
     
-    // Add avatar upload handler
-    document.getElementById('avatar-upload').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            uploadAvatar(file);
-        }
-    });
+    document.body.appendChild(notification);
     
-    // Add bio character counter
-    document.getElementById('bio').addEventListener('input', function() {
-        document.getElementById('bio-char-count').textContent = this.value.length;
-    });
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Reset form
+function resetForm() {
+    updateUIWithProfileData();
+    showNotification('Changes discarded', 'info');
 }
 
 // Logout function
@@ -299,6 +315,118 @@ function logout() {
         localStorage.removeItem('currentUser');
         localStorage.removeItem('loginTime');
         window.location.href = 'https://quizontal.cc';
+    }
+}
+
+// Initialize dashboard functionality
+function initializeDashboard() {
+    // Sidebar toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    
+    if (menuToggle && sidebar) {
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('hide');
+        });
+    }
+
+    // Section navigation
+    const sideMenuLinks = document.querySelectorAll('.side-menu a[data-section]');
+    const sections = document.querySelectorAll('.section');
+    
+    sideMenuLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetSection = this.getAttribute('data-section');
+            
+            // Update active menu item
+            sideMenuLinks.forEach(l => l.parentElement.classList.remove('active'));
+            this.parentElement.classList.add('active');
+            
+            // Show target section
+            sections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === targetSection) {
+                    section.classList.add('active');
+                }
+            });
+        });
+    });
+
+    // Logout button
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+    }
+
+    // Avatar upload handler
+    const avatarUpload = document.getElementById('avatar-upload');
+    if (avatarUpload) {
+        avatarUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                uploadAvatar(file);
+            }
+        });
+    }
+
+    // Profile form submission
+    const profileForm = document.getElementById('profile-form');
+    if (profileForm) {
+        profileForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = {
+                fullName: document.getElementById('full-name').value,
+                phone: document.getElementById('phone').value,
+                company: document.getElementById('company').value,
+                position: document.getElementById('position').value,
+                bio: document.getElementById('bio').value
+            };
+            
+            await saveProfileData(formData);
+        });
+    }
+
+    // Initial profile form submission
+    const initialProfileForm = document.getElementById('initial-profile-form');
+    if (initialProfileForm) {
+        initialProfileForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = {
+                phone: document.getElementById('modal-phone').value,
+                company: document.getElementById('modal-company').value,
+                position: document.getElementById('modal-position').value,
+                bio: document.getElementById('modal-bio').value
+            };
+            
+            const success = await saveProfileData(formData);
+            if (success) {
+                document.getElementById('profile-modal').style.display = 'none';
+                showNotification('Profile completed successfully!');
+            }
+        });
+    }
+
+    // Bio character counter
+    const bioTextarea = document.getElementById('bio');
+    if (bioTextarea) {
+        bioTextarea.addEventListener('input', function() {
+            const charCount = document.getElementById('bio-char-count');
+            if (charCount) {
+                charCount.textContent = this.value.length;
+            }
+        });
+    }
+
+    // Dark mode toggle
+    const switchMode = document.getElementById('switch-mode');
+    if (switchMode) {
+        switchMode.addEventListener('change', function() {
+            document.body.classList.toggle('dark', this.checked);
+        });
     }
 }
 
@@ -313,3 +441,4 @@ window.removeAvatar = removeAvatar;
 window.logout = logout;
 window.nextStep = nextStep;
 window.prevStep = prevStep;
+window.resetForm = resetForm;
