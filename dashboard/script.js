@@ -283,3 +283,34 @@ document.addEventListener('DOMContentLoaded', function() {
 window.changeAvatar = changeAvatar;
 window.resetForm = resetForm;
 window.logout = logout;
+
+// Logo Section
+function selectLogo(style) {
+    document.getElementById('logo-form').style.display = 'block';
+    document.getElementById('logo-style').value = style;
+}
+
+// Handle Form Submission
+document.getElementById('create-logo-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    
+    const logoText = document.getElementById('logo-text').value;
+    const logoColor = document.getElementById('logo-color').value;
+    const logoStyle = document.getElementById('logo-style').value;
+
+    // Format WhatsApp message
+    const phoneNumber = "+94774915917"; // Add your number
+    const message = `New Logo Order:%0AStyle: ${logoStyle}%0AText: ${logoText}%0AColor: ${logoColor}`;
+    
+    // Open WhatsApp with pre-filled message
+    window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+
+    // Show order confirmation message
+    document.getElementById('order-msg').style.display = 'block';
+    document.getElementById('order-msg').innerText = 'Your order will be processed. Contact me via WhatsApp to finalize it.';
+
+    // Optionally reset form
+    this.reset();
+    document.getElementById('logo-form').style.display = 'none';
+});
+
