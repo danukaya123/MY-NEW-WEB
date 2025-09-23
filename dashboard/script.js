@@ -1,25 +1,5 @@
-// Firebase Configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyD2vYzivm2Gbgl_ee0t81d6r5GPHeI4Gqs",
-    authDomain: "quizontal-de977.firebaseapp.com",
-    projectId: "quizontal-de977",
-    storageBucket: "quizontal-de977.firebasestorage.app",
-    messagingSenderId: "448533191404",
-    appId: "1:448533191404:web:f13787dc074def891fe3c9"
-};
-
-// Initialize Firebase
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const storage = firebase.storage();
-
-let currentUser = null;
-let userProfile = null;
-let currentStep = 1;
-const totalSteps = 2;
-
 // Check authentication status
-async function checkAuthStatus() {
+function checkAuthStatus() {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     const userData = localStorage.getItem('currentUser');
     
@@ -28,258 +8,127 @@ async function checkAuthStatus() {
         return;
     }
     
-    currentUser = JSON.parse(userData);
-    await loadUserProfile();
     displayUserInfo();
+    loadProfileData();
+    checkProfileCompletion();
+}
+
+// Display user information in navbar
+function displayUserInfo() {
+    const userData = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const profileElement = document.querySelector('.profile');
+    const profileName = document.querySelector('.profile-name');
     
-    // Check if profile needs completion (show modal if profile is incomplete)
-    if (!userProfile.profileComplete) {
+    if (userData.name && profileName) {
+        profileName.textContent = userData.name;
+    }
+    
+    if (userData.picture) {
+        const img = profileElement.querySelector('img');
+        img.src = userData.picture;
+        img.alt = userData.name;
+    }
+}
+
+// Load profile data
+function loadProfileData() {
+    const userData = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const profileData = JSON.parse(localStorage.getItem('profileData') || '{}');
+    
+    // Merge user data with profile data
+    const mergedData = { ...userData, ...profileData };
+    
+    // Update profile section
+    document.getElementById('profile-name').textContent = mergedData.name || 'User';
+    document.getElementById('profile-email').textContent = mergedData.email || 'No email';
+    document.getElementById('full-name').value = mergedData.name || '';
+    document.getElementById('phone').value = mergedData.phone || '';
+    document.getElementById('company').value = mergedData.company || '';
+    document.getElementById('position').value = mergedData.position || '';
+    document.getElementById('bio').value = mergedData.bio || '';
+    
+    // Update avatar
+    if (mergedData.picture) {
+        document.getElementById('profile-avatar').src = mergedData.picture;
+    }
+    
+    // Update dates
+    if (mergedData.joined) {
+        document.getElementById('joined-date').textContent = new Date(mergedData.joined).toLocaleDateString();
+    }
+    document.getElementById('last-login').textContent = new Date().toLocaleDateString();
+    
+    // Update account info
+    document.getElementById('account-plan').textContent = mergedData.plan || 'Starter';
+    document.getElementById('email-verified').textContent = mergedData.email_verified ? 'Yes' : 'No';
+}
+
+// Check if profile needs completion
+function checkProfileCompletion() {
+    const profileData = JSON.parse(localStorage.getItem('profileData') || '{}');
+    
+    if (!profileData.phone || !profileData.company) {
         setTimeout(() => {
-            showProfileModal();
+            document.getElementById('profile-modal').style.display = 'block';
         }, 1000);
     }
 }
 
-// Load user profile from Firestore
-async function loadUserProfile() {
-    try {
-        const userDoc = await db.collection('users').doc(currentUser.uid).get();
-        
-        if (userDoc.exists) {
-            userProfile = userDoc.data();
-        } else {
-            // Create initial profile
-            userProfile = {
-                uid: currentUser.uid,
-                name: currentUser.name,
-                email: currentUser.email,
-                picture: currentUser.picture,
-                email_verified: currentUser.email_verified || false,
-                joined: new Date(),
-                lastLogin: new Date(),
-                plan: 'starter',
-                status: 'active',
-                profileComplete: false
+// Save profile data
+function saveProfileData(formData) {
+    const currentData = JSON.parse(localStorage.getItem('profileData') || '{}');
+    const userData = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    
+    const updatedData = {
+        ...currentData,
+        ...formData,
+        lastUpdated: new Date().toISOString()
+    };
+    
+    localStorage.setItem('profileData', JSON.stringify(updatedData));
+    
+    // Also update user data if name changed
+    if (formData.fullName && formData.fullName !== userData.name) {
+        userData.name = formData.fullName;
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        displayUserInfo();
+    }
+    
+    loadProfileData();
+    return updatedData;
+}
+
+// Change avatar function
+function changeAvatar() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const profileData = JSON.parse(localStorage.getItem('profileData') || '{}');
+                profileData.avatar = event.target.result;
+                localStorage.setItem('profileData', JSON.stringify(profileData));
+                document.getElementById('profile-avatar').src = event.target.result;
             };
-            
-            await db.collection('users').doc(currentUser.uid).set(userProfile);
+            reader.readAsDataURL(file);
         }
-        
-        // Update last login
-        await db.collection('users').doc(currentUser.uid).update({
-            lastLogin: new Date()
-        });
-        
-        updateUIWithProfileData();
-        
-    } catch (error) {
-        console.error('Error loading profile:', error);
-        showNotification('Error loading profile data', 'error');
-    }
+    };
+    
+    input.click();
 }
 
-// Update UI with profile data
-function updateUIWithProfileData() {
-    if (!userProfile) return;
-    
-    // Update navbar
-    const navUserName = document.getElementById('nav-user-name');
-    const navAvatar = document.getElementById('nav-avatar');
-    
-    if (navUserName) navUserName.textContent = userProfile.name || 'User';
-    if (navAvatar && userProfile.picture) {
-        navAvatar.src = userProfile.picture;
-    }
-    
-    // Update profile section
-    document.getElementById('profile-name').textContent = userProfile.name || 'User';
-    document.getElementById('profile-email').textContent = userProfile.email || 'No email';
-    document.getElementById('full-name').value = userProfile.name || '';
-    document.getElementById('phone').value = userProfile.phone || '';
-    document.getElementById('company').value = userProfile.company || '';
-    document.getElementById('position').value = userProfile.position || '';
-    document.getElementById('bio').value = userProfile.bio || '';
-    
-    // Update avatar
-    if (userProfile.picture) {
-        document.getElementById('profile-avatar').src = userProfile.picture;
-    }
-    
-    // Update dates
-    if (userProfile.joined) {
-        const joinedDate = userProfile.joined.toDate ? userProfile.joined.toDate() : new Date(userProfile.joined);
-        document.getElementById('joined-date').textContent = joinedDate.toLocaleDateString();
-    }
-    
-    document.getElementById('last-login').textContent = new Date().toLocaleDateString();
-    
-    // Update account info
-    document.getElementById('account-plan').textContent = userProfile.plan || 'Starter';
-    
-    // Calculate profile completion percentage
-    const completion = calculateProfileCompletion();
-    document.getElementById('profile-complete').textContent = completion + '%';
-}
-
-// Calculate profile completion percentage
-function calculateProfileCompletion() {
-    if (!userProfile) return 0;
-    
-    let completed = 0;
-    const fields = ['name', 'email', 'phone', 'company', 'position', 'bio'];
-    
-    fields.forEach(field => {
-        if (userProfile[field] && userProfile[field].toString().trim() !== '') {
-            completed++;
-        }
-    });
-    
-    return Math.round((completed / fields.length) * 100);
-}
-
-// Save profile data to Firestore
-async function saveProfileData(formData) {
-    try {
-        const updates = {
-            ...formData,
-            lastUpdated: new Date(),
-            profileComplete: calculateProfileCompletion() >= 80
-        };
-        
-        // Use name instead of fullName for consistency
-        if (updates.fullName) {
-            updates.name = updates.fullName;
-            delete updates.fullName;
-        }
-        
-        await db.collection('users').doc(currentUser.uid).update(updates);
-        
-        // Update local profile data
-        userProfile = { ...userProfile, ...updates };
-        
-        // Update UI
-        updateUIWithProfileData();
-        
-        showNotification('Profile updated successfully!', 'success');
-        return true;
-        
-    } catch (error) {
-        console.error('Error saving profile:', error);
-        showNotification('Error saving profile data', 'error');
-        return false;
-    }
-}
-
-// Upload avatar to Firebase Storage
-async function uploadAvatar(file) {
-    try {
-        const storageRef = storage.ref();
-        const avatarRef = storageRef.child(`avatars/${currentUser.uid}/${file.name}`);
-        const snapshot = await avatarRef.put(file);
-        const downloadURL = await snapshot.ref.getDownloadURL();
-        
-        // Update profile with new avatar URL
-        await db.collection('users').doc(currentUser.uid).update({
-            picture: downloadURL,
-            lastUpdated: new Date()
-        });
-        
-        userProfile.picture = downloadURL;
-        updateUIWithProfileData();
-        
-        showNotification('Avatar updated successfully!', 'success');
-        return downloadURL;
-        
-    } catch (error) {
-        console.error('Error uploading avatar:', error);
-        showNotification('Error uploading avatar', 'error');
-        return null;
-    }
-}
-
-// Remove avatar
-async function removeAvatar() {
-    if (!confirm('Are you sure you want to remove your avatar?')) return;
-    
-    try {
-        await db.collection('users').doc(currentUser.uid).update({
-            picture: '',
-            lastUpdated: new Date()
-        });
-        
-        userProfile.picture = '';
-        updateUIWithProfileData();
-        
-        showNotification('Avatar removed successfully!', 'success');
-    } catch (error) {
-        console.error('Error removing avatar:', error);
-        showNotification('Error removing avatar', 'error');
-    }
-}
-
-// Show profile completion modal
-function showProfileModal() {
-    const modal = document.getElementById('profile-modal');
-    if (modal) {
-        modal.style.display = 'block';
-        updateModalProgress();
-    }
-}
-
-// Update modal progress bar
-function updateModalProgress() {
-    const progress = document.getElementById('profile-progress');
-    const progressPercentage = (currentStep / totalSteps) * 100;
-    progress.style.width = progressPercentage + '%';
-}
-
-// Modal navigation functions
-function nextStep() {
-    if (currentStep < totalSteps) {
-        document.getElementById(`step-${currentStep}`).classList.remove('active');
-        currentStep++;
-        document.getElementById(`step-${currentStep}`).classList.add('active');
-        updateModalButtons();
-        updateModalProgress();
-    }
-}
-
-function prevStep() {
-    if (currentStep > 1) {
-        document.getElementById(`step-${currentStep}`).classList.remove('active');
-        currentStep--;
-        document.getElementById(`step-${currentStep}`).classList.add('active');
-        updateModalButtons();
-        updateModalProgress();
-    }
-}
-
-function updateModalButtons() {
-    const prevBtn = document.querySelector('.btn-prev');
-    const nextBtn = document.querySelector('.btn-next');
-    const completeBtn = document.querySelector('.btn-complete');
-    
-    if (prevBtn) prevBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
-    if (nextBtn) nextBtn.style.display = currentStep < totalSteps ? 'inline-block' : 'none';
-    if (completeBtn) completeBtn.style.display = currentStep === totalSteps ? 'inline-block' : 'none';
-}
-
-// Display user information
-function displayUserInfo() {
-    if (!currentUser) return;
-    
-    const profileName = document.querySelector('.profile-name');
-    const navAvatar = document.getElementById('nav-avatar');
-    
-    if (profileName) profileName.textContent = currentUser.name || 'User';
-    if (navAvatar && currentUser.picture) {
-        navAvatar.src = currentUser.picture;
-    }
+// Reset form to original values
+function resetForm() {
+    loadProfileData();
+    showNotification('Changes discarded', 'info');
 }
 
 // Show notification
 function showNotification(message, type = 'success') {
-    // Create notification element
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
@@ -291,8 +140,7 @@ function showNotification(message, type = 'success') {
         background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#ff9800'};
         color: white;
         border-radius: 5px;
-        z-index: 10000;
-        font-family: var(--lato);
+        z-index: 1000;
     `;
     
     document.body.appendChild(notification);
@@ -302,10 +150,117 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// Reset form
-function resetForm() {
-    updateUIWithProfileData();
-    showNotification('Changes discarded', 'info');
+// Section navigation
+function setupSectionNavigation() {
+    const sideMenuLinks = document.querySelectorAll('.side-menu a');
+    const sections = document.querySelectorAll('.section');
+    
+    sideMenuLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href');
+            
+            if (targetId && targetId.startsWith('#')) {
+                // Update active menu item
+                sideMenuLinks.forEach(l => l.parentElement.classList.remove('active'));
+                link.parentElement.classList.add('active');
+                
+                // Show target section
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                const targetSection = document.querySelector(targetId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                }
+            }
+        });
+    });
+}
+
+// Initialize dashboard
+function initializeDashboard() {
+    setupSectionNavigation();
+    
+    // Existing dashboard functionality
+    const allSideMenu = document.querySelectorAll('#sidebar .side-menu.top li a');
+    allSideMenu.forEach(item => {
+        const li = item.parentElement;
+        item.addEventListener('click', function () {
+            allSideMenu.forEach(i => {
+                i.parentElement.classList.remove('active');
+            });
+            li.classList.add('active');
+        });
+    });
+
+    // TOGGLE SIDEBAR
+    const menuBar = document.querySelector('#content nav .bx.bx-menu');
+    const sidebar = document.getElementById('sidebar');
+    menuBar.addEventListener('click', function () {
+        sidebar.classList.toggle('hide');
+    });
+
+    // Search functionality
+    const searchButton = document.querySelector('#content nav form .form-input button');
+    const searchButtonIcon = document.querySelector('#content nav form .form-input button .bx');
+    const searchForm = document.querySelector('#content nav form');
+    searchButton.addEventListener('click', function (e) {
+        if(window.innerWidth < 576) {
+            e.preventDefault();
+            searchForm.classList.toggle('show');
+            if(searchForm.classList.contains('show')) {
+                searchButtonIcon.classList.replace('bx-search', 'bx-x');
+            } else {
+                searchButtonIcon.classList.replace('bx-x', 'bx-search');
+            }
+        }
+    });
+
+    // Dark mode
+    const switchMode = document.getElementById('switch-mode');
+    switchMode.addEventListener('change', function () {
+        document.body.classList.toggle('dark', this.checked);
+    });
+
+    // Profile form submission
+    document.getElementById('profile-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = {
+            fullName: document.getElementById('full-name').value,
+            phone: document.getElementById('phone').value,
+            company: document.getElementById('company').value,
+            position: document.getElementById('position').value,
+            bio: document.getElementById('bio').value
+        };
+        
+        saveProfileData(formData);
+        showNotification('Profile updated successfully!');
+    });
+
+    // Initial profile form submission
+    document.getElementById('initial-profile-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = {
+            phone: document.getElementById('modal-phone').value,
+            company: document.getElementById('modal-company').value,
+            position: document.getElementById('modal-position').value
+        };
+        
+        saveProfileData(formData);
+        document.getElementById('profile-modal').style.display = 'none';
+        showNotification('Profile completed successfully!');
+    });
+
+    // Logout functionality
+    const logoutButton = document.querySelector('.side-menu .logout');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+    }
 }
 
 // Logout function
@@ -318,118 +273,6 @@ function logout() {
     }
 }
 
-// Initialize dashboard functionality
-function initializeDashboard() {
-    // Sidebar toggle
-    const menuToggle = document.getElementById('menu-toggle');
-    const sidebar = document.getElementById('sidebar');
-    
-    if (menuToggle && sidebar) {
-        menuToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('hide');
-        });
-    }
-
-    // Section navigation
-    const sideMenuLinks = document.querySelectorAll('.side-menu a[data-section]');
-    const sections = document.querySelectorAll('.section');
-    
-    sideMenuLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetSection = this.getAttribute('data-section');
-            
-            // Update active menu item
-            sideMenuLinks.forEach(l => l.parentElement.classList.remove('active'));
-            this.parentElement.classList.add('active');
-            
-            // Show target section
-            sections.forEach(section => {
-                section.classList.remove('active');
-                if (section.id === targetSection) {
-                    section.classList.add('active');
-                }
-            });
-        });
-    });
-
-    // Logout button
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            logout();
-        });
-    }
-
-    // Avatar upload handler
-    const avatarUpload = document.getElementById('avatar-upload');
-    if (avatarUpload) {
-        avatarUpload.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                uploadAvatar(file);
-            }
-        });
-    }
-
-    // Profile form submission
-    const profileForm = document.getElementById('profile-form');
-    if (profileForm) {
-        profileForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const formData = {
-                fullName: document.getElementById('full-name').value,
-                phone: document.getElementById('phone').value,
-                company: document.getElementById('company').value,
-                position: document.getElementById('position').value,
-                bio: document.getElementById('bio').value
-            };
-            
-            await saveProfileData(formData);
-        });
-    }
-
-    // Initial profile form submission
-    const initialProfileForm = document.getElementById('initial-profile-form');
-    if (initialProfileForm) {
-        initialProfileForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const formData = {
-                phone: document.getElementById('modal-phone').value,
-                company: document.getElementById('modal-company').value,
-                position: document.getElementById('modal-position').value,
-                bio: document.getElementById('modal-bio').value
-            };
-            
-            const success = await saveProfileData(formData);
-            if (success) {
-                document.getElementById('profile-modal').style.display = 'none';
-                showNotification('Profile completed successfully!');
-            }
-        });
-    }
-
-    // Bio character counter
-    const bioTextarea = document.getElementById('bio');
-    if (bioTextarea) {
-        bioTextarea.addEventListener('input', function() {
-            const charCount = document.getElementById('bio-char-count');
-            if (charCount) {
-                charCount.textContent = this.value.length;
-            }
-        });
-    }
-
-    // Dark mode toggle
-    const switchMode = document.getElementById('switch-mode');
-    if (switchMode) {
-        switchMode.addEventListener('change', function() {
-            document.body.classList.toggle('dark', this.checked);
-        });
-    }
-}
-
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     checkAuthStatus();
@@ -437,8 +280,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Make functions globally available
-window.removeAvatar = removeAvatar;
-window.logout = logout;
-window.nextStep = nextStep;
-window.prevStep = prevStep;
+window.changeAvatar = changeAvatar;
 window.resetForm = resetForm;
+window.logout = logout;
