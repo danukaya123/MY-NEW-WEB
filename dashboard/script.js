@@ -288,6 +288,9 @@ window.logout = logout;
 function selectLogo(style) {
     document.getElementById('logo-form').style.display = 'block';
     document.getElementById('logo-style').value = style;
+    
+    // Scroll to form
+    document.getElementById('logo-form').scrollIntoView({ behavior: 'smooth' });
 }
 
 // Handle Form Submission
@@ -314,3 +317,34 @@ document.getElementById('create-logo-form').addEventListener('submit', function(
     document.getElementById('logo-form').style.display = 'none';
 });
 
+// Section Navigation
+document.querySelectorAll('.side-menu a').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Remove active class from all sections and menu items
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('active');
+        });
+        document.querySelectorAll('.side-menu li').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        // Get target section ID from href
+        const targetId = this.getAttribute('href').substring(1);
+        const targetSection = document.getElementById(targetId);
+        
+        if (targetSection) {
+            // Add active class to target section
+            targetSection.classList.add('active');
+            
+            // Add active class to parent menu item
+            this.parentElement.classList.add('active');
+        }
+    });
+});
+
+// Toggle sidebar
+document.querySelector('.bx-menu').addEventListener('click', function() {
+    document.getElementById('sidebar').classList.toggle('hide');
+});
