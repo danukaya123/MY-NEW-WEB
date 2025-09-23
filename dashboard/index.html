@@ -30,6 +30,12 @@
 				</a>
 			</li>
 			<li>
+				<li>
+    <a href="#logo-section">
+        <i class='bx bxs-paint'></i>
+        <span class="text">Create Logo</span>
+    </a>
+</li>
 				<a href="#">
 					<i class='bx bxs-shopping-bag-alt' ></i>
 					<span class="text">My Store</span>
@@ -289,6 +295,58 @@
 			</div>
 		</main>
 	</section>
+	
+
+       <div class="logo-examples">
+        <h3>Select a Logo Style:</h3>
+        <div class="logos-grid">
+            <div class="logo-item" onclick="selectLogo('minimalist')">
+                <img src="https://tse4.mm.bing.net/th/id/OIP._31Oez-qgd4YYeSq-XJwkgHaFi?pid=Api" alt="Minimalist Logo">
+                <p>Minimalist</p>
+            </div>
+            <div class="logo-item" onclick="selectLogo('vintage')">
+                <img src="https://tse4.mm.bing.net/th/id/OIP.DpuOXYjqTYXn5d3wBVrgrwHaFj?pid=Api" alt="Vintage Logo">
+                <p>Vintage</p>
+            </div>
+            <div class="logo-item" onclick="selectLogo('abstract')">
+                <img src="https://tse1.mm.bing.net/th/id/OIP.ZVy85Sdvc0HvBsVqZNzFWQHaHa?pid=Api" alt="Abstract Logo">
+                <p>Abstract</p>
+            </div>
+            <div class="logo-item" onclick="selectLogo('mascot')">
+                <img src="https://tse1.mm.bing.net/th/id/OIP.I29X08cEs-xTpkejeyw5MAHaGH?pid=Api" alt="Mascot Logo">
+                <p>Mascot</p>
+            </div>
+            <div class="logo-item" onclick="selectLogo('lettermark')">
+                <img src="https://tse3.mm.bing.net/th/id/OIP.IDI0GAmpy7x0HV22isKuCAHaDz?pid=Api" alt="Lettermark Logo">
+                <p>Lettermark</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logo Form -->
+    <div class="logo-form" id="logo-form" style="display:none;">
+        <h3>Fill Details to Create Logo</h3>
+        <form id="create-logo-form">
+            <div class="form-group">
+                <label for="logo-text">Text / Name</label>
+                <input type="text" id="logo-text" name="logoText" required>
+            </div>
+            <div class="form-group">
+                <label for="logo-color">Color / Theme</label>
+                <input type="text" id="logo-color" name="logoColor" required>
+            </div>
+            <div class="form-group">
+                <label for="logo-style">Selected Style</label>
+                <input type="text" id="logo-style" name="logoStyle" readonly>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-save">Submit Order</button>
+            </div>
+        </form>
+        <p id="order-msg" style="margin-top: 10px; color: var(--blue); display:none;"></p>
+    </div>
+</div>
+
 
 	<!-- Profile Completion Modal -->
 	<div id="profile-modal" class="modal">
