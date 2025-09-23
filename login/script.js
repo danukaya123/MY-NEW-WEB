@@ -303,7 +303,7 @@ function checkAuthStatus() {
 
 // Redirect to dashboard
 function redirectToDashboard() {
-    window.location.href = 'dashboard/index.html';
+    window.location.href = '/dashboard/index.html';
 }
 
 // Handle regular form submissions
